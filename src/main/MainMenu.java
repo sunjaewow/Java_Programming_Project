@@ -2,10 +2,11 @@ package main;
 
 import dao.MovieDAO;
 import domain.Member;
-import service.MemberService;
 import service.MovieService;
 import service.MovieServiceImp;
 import service.MovieServiceProxy;
+import util.InputUtil;
+import util.PrintUtil;
 
 import java.util.Scanner;
 
@@ -25,8 +26,8 @@ public class MainMenu {
 
     public void showMenu() {
         while (true) {
-            printMenu();
-            int choice = getIntInput("선택: ");
+            PrintUtil.printMainMenu();
+            int choice = InputUtil.getIntInput(sc);
             if (choice == 2) {
                 if (movieService.registerMovie()) {
                     System.out.println("영화 등록 완료!");
@@ -38,24 +39,5 @@ public class MainMenu {
             }
             // 각 기능은 나중에 연결!
         }
-    }
-
-    private int getIntInput(String prompt) {
-        while (true) {
-            try {
-                System.out.print(prompt);
-                int n = Integer.parseInt(sc.nextLine());
-                return n;
-            } catch (NumberFormatException e) {
-                System.out.println("숫자를 입력해주세요.");
-            }
-        }
-    }
-
-    private static void printMenu() {
-        System.out.println("1. 영화예매하기");
-        System.out.println("2. 영화등록하기");
-        System.out.println("3. 마이페이지");
-        System.out.println("4. 종료하기");
     }
 }

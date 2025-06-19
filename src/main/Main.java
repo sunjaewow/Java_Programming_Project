@@ -3,6 +3,8 @@ package main;
 import dao.MemberDAO;
 import domain.Member;
 import service.MemberService;
+import util.InputUtil;
+import util.PrintUtil;
 
 import java.util.Scanner;
 
@@ -13,12 +15,8 @@ public class Main {
             MemberService memberService = new MemberService(memberDAO, sc);
 
             while (true) {
-                System.out.println("1. 회원가입");
-                System.out.println("2. 로그인");
-                System.out.println("3. 종료하기");
-                System.out.print("선택: ");
-                int choice = sc.nextInt();
-                sc.nextLine();
+                PrintUtil.printFirstMenu();
+                int choice = InputUtil.getIntInput(sc);
 
                 if (choice == 1) {
                     memberService.signup();
@@ -34,5 +32,4 @@ public class Main {
                 }
             }
         }
-
 }

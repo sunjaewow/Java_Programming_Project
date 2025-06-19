@@ -1,19 +1,19 @@
 package domain;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Movie {
     private int id;
     private String title;
-    private int seatCount;
+    private String time;
 
-    public Movie(String title, int seatCount) {
-        this.title = title;
-        this.seatCount = seatCount;
-    }
+    private Map<String, Integer> seatCounts;
 
-    public Movie(int id, String title, int seatCount) {
-        this.id = id;
+    public Movie(String title, String time, Map<String, Integer> seatCounts) {
         this.title = title;
-        this.seatCount = seatCount;
+        this.time = time;
+        this.seatCounts = seatCounts;
     }
 
     public int getId() {
@@ -32,11 +32,19 @@ public class Movie {
         this.title = title;
     }
 
-    public int getSeatCount() {
-        return seatCount;
+    public String getTime() {
+        return time;
     }
 
-    public void setSeatCount(int seatCount) {
-        this.seatCount = seatCount;
+    public void setTime(String time) {
+        this.time = time;
+    }
+
+    public Map<String, Integer> getSeatCounts() {
+        return seatCounts;
+    }
+
+    public void setSeatCounts(Map<String, Integer> seatCounts) {
+        this.seatCounts = seatCounts;
     }
 }
