@@ -23,9 +23,9 @@ public class Main {
                 if (choice == 1) {
                     memberService.signup();
                 } else if (choice == 2) {
-                    Member loginMember = memberService.login();
-                    if (loginMember != null) {
-                        MainMenu mainMenu = new MainMenu(sc, loginMember);
+                    Member member = memberService.login();
+                    if (member != null) {
+                        MainMenu mainMenu = new MainMenu(sc, member);
                         mainMenu.showMenu();
                     }
                 } else if (choice == 3) {
