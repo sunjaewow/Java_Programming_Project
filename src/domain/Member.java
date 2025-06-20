@@ -1,6 +1,19 @@
 package domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Member {
+
+    private int memberId;
+
+    public int getMemberId() {
+        return memberId;
+    }
+
+    public void setMemberId(int memberId) {
+        this.memberId = memberId;
+    }
 
     private String id;
 
@@ -49,5 +62,17 @@ public class Member {
         return age;
     }
 
+    private List<Reservation> reservationList = new ArrayList<>();
+
+
+    // 예매 내역 추가 메서드
+    public void addReservation(Reservation reservation) {
+        reservationList.add(reservation);
+    }
+
+    // 예매 내역 조회 메서드
+    public List<Reservation> getReservationList() {
+        return reservationList;
+    }
 
 }

@@ -16,6 +16,13 @@ public class Movie {
         this.seatCounts = seatCounts;
     }
 
+    public Movie(int id, String title, String time, Map<String, Integer> seatCounts) {
+        this.id = id;
+        this.title = title;
+        this.time = time;
+        this.seatCounts = seatCounts;
+    }
+
     public int getId() {
         return id;
     }

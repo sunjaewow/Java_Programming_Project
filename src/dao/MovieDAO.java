@@ -3,6 +3,10 @@ package dao;
 import domain.Movie;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MovieDAO {
 
@@ -27,4 +31,32 @@ public class MovieDAO {
             return false;
         }
     }
+
+    public List<Movie> getAllMovies() {
+        List<Movie> movies = new ArrayList<>();
+        String sql = "SELECT * FROM movie";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PW);
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String title = rs.getString("title");
+                String time = rs.getString("time");
+
+                Map<String, Integer> seatCounts = new HashMap<>();
+                seatCounts.put("노약좌석", rs.getInt("senior_seat_count"));
+                seatCounts.put("임산부석", rs.getInt("pregnant_seat_count"));
+                seatCounts.put("일반석", rs.getInt("general_seat_count"));
+                seatCounts.put("프리미엄석", rs.getInt("premium_seat_count"));
+
+                Movie movie = new Movie(id, title, time, seatCounts);
+                movies.add(movie);
+            }
+        } catch (SQLException e) {
+            System.out.println("영화 목록 조회 실패: " + e.getMessage());
+        }
+        return movies;
+    }
 }
+

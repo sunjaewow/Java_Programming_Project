@@ -1,4 +1,4 @@
-package service;
+package service.movie;
 
 public interface MovieService {
     boolean registerMovie();

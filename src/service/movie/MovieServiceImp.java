@@ -1,10 +1,9 @@
-package service;
+package service.movie;
 
 import dao.MovieDAO;
 import domain.Movie;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
 

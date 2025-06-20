@@ -10,7 +10,7 @@ public class MemberDAO {
     private static final String PW = "fpdlswj365";
 
     public boolean createMember(Member member) {
-        String sql = "INSERT INTO member (id, pw, age, role) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO member (id, password, age, role) VALUES (?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(URL, USER, PW);
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, member.getId());
@@ -25,17 +25,17 @@ public class MemberDAO {
         }
     }
 
-    public Member loginMember(String id, String pw) {
-        String sql = "SELECT * FROM member WHERE id=? AND pw=?";
+    public Member loginMember(String id, String password) {
+        String sql = "SELECT * FROM member WHERE id=? AND password=?";
         try (Connection conn = DriverManager.getConnection(URL, USER, PW);
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id);
-            ps.setString(2, pw);
+            ps.setString(2, password);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return new Member(
                         rs.getString("id"),
-                        rs.getString("pw"),
+                        rs.getString("password"),
                         rs.getInt("age"),
                         rs.getString("role")
                 );

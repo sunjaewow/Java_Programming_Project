@@ -11,8 +11,7 @@ import java.util.Scanner;
 public class Main {
         public static void main(String[] args) {
             Scanner sc = new Scanner(System.in);
-            MemberDAO memberDAO = new MemberDAO();
-            MemberService memberService = new MemberService(memberDAO, sc);
+            MemberService memberService = new MemberService();
 
             while (true) {
                 PrintUtil.printFirstMenu();
