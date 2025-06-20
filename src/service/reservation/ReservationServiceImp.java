@@ -132,7 +132,7 @@ public class ReservationServiceImp implements ReservationService{
             case "프리미엄석":
                 return new PremiumSeatFactory();
             default:
-                throw new IllegalArgumentException("존재하지 않는 좌석 타입: " + seatType);
+                throw new IllegalArgumentException("존재하지 않는 dd좌석 타입: " + seatType);
         }
     }
 
