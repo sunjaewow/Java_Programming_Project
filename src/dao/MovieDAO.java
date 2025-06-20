@@ -100,5 +100,21 @@ public class MovieDAO {
         }
     }
 
+    public int findMovieIdByTitleAndTime(String title, String time) {
+        String sql = "SELECT id FROM movie WHERE title = ? AND time = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PW);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, title);
+            ps.setString(2, time);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt("id");
+            }
+        } catch (SQLException e) {
+            System.out.println("movieId 조회 실패: " + e.getMessage());
+        }
+        return -1;
+    }
+
+
 }
 

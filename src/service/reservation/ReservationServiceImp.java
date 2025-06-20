@@ -117,13 +117,19 @@ public class ReservationServiceImp implements ReservationService{
         );
 
         if (reservationDAO.createReservation(reservation)) {
+            // ★ 좌석 차감(DB)
+            if (!movieDAO.decrementSeatCount(movie.getId(), seatType)) {
+                System.out.println("좌석 차감(DB)이 실패했습니다. 관리자에게 문의하세요.");
+                // 좌석 차감 실패 시, 예매도 롤백(삭제)할지, 그냥 안내만 할지는 정책에 따라 결정
+            }
+
             member.addReservation(reservation);
-            // ★ 객체 balance 동기화(DB와 싱크)
+            // 객체 balance 동기화
             member.setBalance(memberDAO.getBalance(member.getMemberId()));
             System.out.println("예매가 완료되었습니다!");
         } else {
             System.out.println("예약에 실패했습니다. 다시 시도해주세요.");
-            // (실패 시 환불도 원하면 refundBalance 호출)
+            // 실패 시 환불도 원하면 refundBalance 호출
             memberDAO.refundBalance(member.getMemberId(), seat.getPrice());
             return;
         }
@@ -166,10 +172,23 @@ public class ReservationServiceImp implements ReservationService{
             }
             Reservation toCancel = reservations.get(idx);
             // 환불(취소) 순서: DB 예약 삭제 → DB balance 환불 → 객체 반영
-            if (reservationDAO.deleteReservation(member.getMemberId(), toCancel.getMovieTitle(), toCancel.getMovieTime(), toCancel.getSeatType())) {
+            int movieId = movieDAO.findMovieIdByTitleAndTime(toCancel.getMovieTitle(), toCancel.getMovieTime());
+
+            // 2. 예매 취소(삭제)
+            if (reservationDAO.deleteReservation(
+                    member.getMemberId(), toCancel.getMovieTitle(), toCancel.getMovieTime(), toCancel.getSeatType())) {
+
+                // 3. DB balance 환불
                 if (memberDAO.refundBalance(member.getMemberId(), toCancel.getPrice())) {
-                    member.removeReservation(toCancel); // 객체 내역 동기화
-                    member.setBalance(memberDAO.getBalance(member.getMemberId())); // 객체 balance 동기화
+
+                    // 4. ★ 좌석 복구(DB)
+                    if (!movieDAO.incrementSeatCount(movieId, toCancel.getSeatType())) {
+                        System.out.println("좌석 복구(DB)가 실패했습니다. 관리자에게 문의하세요.");
+                    }
+
+                    // 5. 객체 동기화
+                    member.removeReservation(toCancel);
+                    member.setBalance(memberDAO.getBalance(member.getMemberId()));
                     System.out.println("예매가 취소되고 금액이 환불되었습니다.");
                 } else {
                     System.out.println("환불 처리 실패!");
@@ -177,7 +196,7 @@ public class ReservationServiceImp implements ReservationService{
             } else {
                 System.out.println("예매 취소 실패!");
             }
-        } else if (sel == 2) {
+        }else if (sel == 2) {
             // 돈 충전
             System.out.print("충전할 금액 입력: ");
             int amount = sc.nextInt();
