@@ -1,5 +1,6 @@
 package main;
 
+import commend.*;
 import dao.MovieDAO;
 import domain.Member;
 import facade.ReservationFacade;
@@ -11,6 +12,8 @@ import service.reservation.ReservationServiceImp;
 import util.InputUtil;
 import util.PrintUtil;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 public class MainMenu {
@@ -23,6 +26,9 @@ public class MainMenu {
 
     private final ReservationFacade reservationFacade;
 
+    private final Map<Integer, Command> commandMap = new HashMap<>();
+
+
     public MainMenu(Scanner sc, Member member) {
         this.sc = sc;
         this.member = member;
@@ -31,6 +37,12 @@ public class MainMenu {
         this.movieService = new MovieServiceProxy(movieServiceImp, member);;
         this.reservationService = new ReservationServiceImp();
         this.reservationFacade = new ReservationFacade();
+
+        // 커맨드 등록
+        commandMap.put(1, new ReserveCommand(reservationFacade, member));
+        commandMap.put(2, new RegisterMovieCommand(movieService, member));
+        commandMap.put(3, new MyPageCommand(reservationService, member));
+        commandMap.put(4, new ExitCommand());
     }
 
     public void showMenu() {
@@ -38,21 +50,16 @@ public class MainMenu {
             PrintUtil.printMainMenu();
             int choice = InputUtil.getIntInput(sc);
 
-            if (choice == 1) {
-                reservationFacade.reserveTicket(member);
-            } else if (choice == 2) {
-                if (movieService.registerMovie(member)) {
-                    System.out.println("영화 등록 완료!");
+            Command cmd = commandMap.get(choice);
+            if (cmd != null) {
+                cmd.execute();
+                if (choice==4)
+                {
+                    break;
                 }
-            } else if (choice == 3) {
-                reservationService.showMyPage(member);
-            } else if (choice == 4) {
-                System.out.println("이용해주셔서 감사합니다.");
-                break;
             } else {
                 System.out.println("번호를 다시 입력해주세요.");
             }
-
         }
     }
 }

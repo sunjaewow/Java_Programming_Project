@@ -6,7 +6,6 @@ import domain.seat.Seat;
 import service.reservation.ReservationService;
 import service.reservation.ReservationServiceImp;
 
-import java.util.Scanner;
 
 public class ReservationFacade {
     private final ReservationService reservationService;
