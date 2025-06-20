@@ -34,9 +34,11 @@ public class MemberDAO {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return new Member(
+                        rs.getInt("member_id"),
                         rs.getString("id"),
                         rs.getString("password"),
                         rs.getInt("age"),
+                        rs.getInt("balance"),
                         rs.getString("role")
                 );
             }

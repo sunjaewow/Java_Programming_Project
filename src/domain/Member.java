@@ -23,6 +23,15 @@ public class Member {
 
     private int balance = 0; // 잔액
 
+    public Member(int memberId, String id, String password, int age, int balance, String role) {
+        this.memberId = memberId;
+        this.id = id;
+        this.password = password;
+        this.age = age;
+        this.balance = balance;
+        this.role = role;
+    }
+
     public Member(String id, String password, int age, String role) {
         this.id = id;
         this.password = password;
