@@ -45,6 +45,11 @@ public class MemberService {
             Member mem = dao.loginMember(id, password);
             if (mem != null) {
                 System.out.println("로그인 성공!");
+                if (mem.getRole().equals("ADMIN")) {
+                    System.out.println("관리자님 어서오세요.");
+                } else {
+                    System.out.println("환영합니다. ");
+                }
                 return mem;
             } else {
                 System.out.println("로그인 실패! 다시 입력해주세요.");

@@ -7,6 +7,9 @@ public class Member {
 
     private int memberId;
 
+    public Member() {
+    }
+
     public int getMemberId() {
         return memberId;
     }

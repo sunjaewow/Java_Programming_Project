@@ -106,5 +106,26 @@ public class MemberDAO {
         return 0; // 실패 시 0 반환
     }
 
+    public Member getMemberById(int memberId) {
+        String sql = "SELECT * FROM member WHERE member_id = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PW);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, memberId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Member m = new Member();
+                    m.setMemberId(rs.getInt("member_id"));
+                    m.setId(rs.getString("id"));
+                    m.setRole(rs.getString("role"));
+                    // 기타 필요한 필드
+                    return m;
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("관리자 정보 조회 실패: " + e.getMessage());
+        }
+        return null;
+    }
+
 
 }

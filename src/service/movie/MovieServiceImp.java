@@ -1,6 +1,7 @@
 package service.movie;
 
 import dao.MovieDAO;
+import domain.Member;
 import domain.Movie;
 
 import java.util.HashMap;
@@ -17,7 +18,7 @@ public class MovieServiceImp implements MovieService {
     }
 
     @Override
-    public boolean registerMovie() {
+    public boolean registerMovie(Member member) {
         System.out.print("영화 제목: ");
         String title = sc.nextLine();
         System.out.print("상영 시간(예: 18:30): ");
@@ -32,7 +33,7 @@ public class MovieServiceImp implements MovieService {
             seatCounts.put(seatType, count);
         }
 
-        return movieDAO.createMovie(new Movie(title, time, seatCounts));
+        return movieDAO.createMovie(new Movie(title, time, seatCounts, member.getMemberId()));
     }
 
 }

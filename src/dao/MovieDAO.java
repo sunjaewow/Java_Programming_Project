@@ -14,7 +14,7 @@ public class MovieDAO {
     private static final String USER = "root";
     private static final String PW = "fpdlswj365";
     public boolean createMovie(Movie movie) {
-        String sql = "INSERT INTO movie (title, time, senior_seat_count, pregnant_seat_count, general_seat_count, premium_seat_count ) VALUES (?, ?,?,?,?,?)";
+        String sql = "INSERT INTO movie (title, time, senior_seat_count, pregnant_seat_count, general_seat_count, premium_seat_count,member_id ) VALUES (?, ?,?,?,?,?,?)";
         try (Connection conn = DriverManager.getConnection(URL, USER, PW);
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, movie.getTitle());
@@ -23,6 +23,7 @@ public class MovieDAO {
             ps.setInt(4, movie.getSeatCounts().get("임산부석"));
             ps.setInt(5, movie.getSeatCounts().get("일반석"));
             ps.setInt(6, movie.getSeatCounts().get("프리미엄석"));
+            ps.setInt(7, movie.getMemberId());
 
             ps.executeUpdate();
             return true;
@@ -43,6 +44,7 @@ public class MovieDAO {
                 int id = rs.getInt("id");
                 String title = rs.getString("title");
                 String time = rs.getString("time");
+                int memberId = rs.getInt("member_id");
 
                 Map<String, Integer> seatCounts = new HashMap<>();
                 seatCounts.put("노약좌석", rs.getInt("senior_seat_count"));
@@ -50,7 +52,7 @@ public class MovieDAO {
                 seatCounts.put("일반석", rs.getInt("general_seat_count"));
                 seatCounts.put("프리미엄석", rs.getInt("premium_seat_count"));
 
-                Movie movie = new Movie(id, title, time, seatCounts);
+                Movie movie = new Movie(id, title, time, seatCounts, memberId);
                 movies.add(movie);
             }
         } catch (SQLException e) {
@@ -87,6 +89,10 @@ public class MovieDAO {
             case "임산부석": columnName = "pregnant_seat_count"; break;
             case "일반석": columnName = "general_seat_count"; break;
             case "프리미엄석": columnName = "premium_seat_count"; break;
+            case "노약좌석 + 팝콘세트": columnName = "senior_seat_count"; break;
+            case "임산부석 + 팝콘세트": columnName = "pregnant_seat_count"; break;
+            case "일반석 + 팝콘세트": columnName = "general_seat_count"; break;
+            case "프리미엄석 + 팝콘세트": columnName = "premium_seat_count"; break;
             default: throw new IllegalArgumentException("좌석타입 오류: " + seatType);
         }
         String sql = "UPDATE movie SET " + columnName + " = " + columnName + " + 1 WHERE id = ?";

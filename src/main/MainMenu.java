@@ -37,7 +37,7 @@ public class MainMenu {
             if (choice == 1) {
                 reservationService.reserve(member);   // ★ 예매 서비스 실행
             } else if (choice == 2) {
-                if (movieService.registerMovie()) {
+                if (movieService.registerMovie(member)) {
                     System.out.println("영화 등록 완료!");
                 }
             } else if (choice == 3) {

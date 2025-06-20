@@ -1,5 +1,7 @@
 package service.movie;
 
+import domain.Member;
+
 public interface MovieService {
-    boolean registerMovie();
+    boolean registerMovie(Member member);
 }

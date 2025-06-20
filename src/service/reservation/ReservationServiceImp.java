@@ -40,9 +40,14 @@ public class ReservationServiceImp implements ReservationService{
         for (int i = 0; i < movies.size(); i++) {
             System.out.printf("%d. %s (%s)\n", i + 1, movies.get(i).getTitle(), movies.get(i).getTime());
         }
+        System.out.println("뒤로 가기 : 99");
         System.out.print("영화 선택(번호): ");
         int movieIdx = sc.nextInt() - 1;
         sc.nextLine();
+        if (movieIdx == 99) {
+            return;
+        }
+
         if (movieIdx < 0 || movieIdx >= movies.size()) {
             System.out.println("잘못된 선택입니다.");
             return;
@@ -59,9 +64,14 @@ public class ReservationServiceImp implements ReservationService{
             int count = seatCounts.getOrDefault(seatTypes[i], 0);
             System.out.printf("%d. %s (남은 좌석: %d)\n", i + 1, seatTypes[i], count);
         }
+        System.out.println("뒤로 가기 : 99");
+
         System.out.print("좌석 선택(번호): ");
         int seatTypeIdx = sc.nextInt() - 1;
         sc.nextLine();
+        if (seatTypeIdx == 99) {
+            return;
+        }
         if (seatTypeIdx < 0 || seatTypeIdx >= seatTypes.length) {
             System.out.println("잘못된 선택입니다.");
             return;
@@ -126,6 +136,16 @@ public class ReservationServiceImp implements ReservationService{
             member.addReservation(reservation);
             // 객체 balance 동기화
             member.setBalance(memberDAO.getBalance(member.getMemberId()));
+            int memberId = movie.getMemberId();
+
+// 2. 관리자 Member 정보 조회 (MemberDAO에 getMemberById(int id) 필요)
+            Member adminMember = memberDAO.getMemberById(memberId);
+            System.out.println(adminMember.getId());
+
+// 3. 옵저버 패턴 등록 및 알림
+            ReservationSubject subject = new ReservationSubject();
+            subject.registerObserver(new AdminObserver(adminMember.getId()));
+            subject.notifyObservers("[" + member.getId() + "] 님이 영화 '" + movie.getTitle() + "'을 예매했습니다.");
             System.out.println("예매가 완료되었습니다!");
         } else {
             System.out.println("예약에 실패했습니다. 다시 시도해주세요.");
