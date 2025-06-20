@@ -21,6 +21,8 @@ public class Member {
 
     private int age;
 
+    private int balance = 0; // 잔액
+
     public Member(String id, String password, int age, String role) {
         this.id = id;
         this.password = password;
@@ -64,13 +66,29 @@ public class Member {
 
     private List<Reservation> reservationList = new ArrayList<>();
 
-
-    // 예매 내역 추가 메서드
-    public void addReservation(Reservation reservation) {
-        reservationList.add(reservation);
+    public void setBalance(int balance) {
+        this.balance = balance;
     }
 
-    // 예매 내역 조회 메서드
+
+// ... 생성자/getter/setter 등 생략
+
+    public void addReservation(Reservation reservation) {
+        reservationList.add(reservation);
+        this.balance -= reservation.getPrice(); // 예매시 자동 차감
+    }
+
+    public void removeReservation(Reservation reservation) {
+        reservationList.remove(reservation);
+        this.balance += reservation.getPrice(); // 예매 취소시 환불
+    }
+
+    public int getBalance() {
+        return balance;
+    }
+    public void chargeMoney(int amount) {
+        this.balance += amount;
+    }
     public List<Reservation> getReservationList() {
         return reservationList;
     }

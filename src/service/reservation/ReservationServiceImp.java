@@ -1,5 +1,6 @@
 package service.reservation;
 
+import dao.MemberDAO;
 import dao.MovieDAO;
 import dao.ReservationDAO;
 import domain.Member;
@@ -8,6 +9,8 @@ import domain.Reservation;
 import domain.seat.Seat;
 import domain.seat.decorator.PopcornDecorator;
 import domain.seat.factory.*;
+import observer.AdminObserver;
+import observer.ReservationSubject;
 
 import java.util.List;
 import java.util.Map;
@@ -18,10 +21,13 @@ public class ReservationServiceImp implements ReservationService{
     private final ReservationDAO reservationDAO;
     private final Scanner sc;
 
+    private final MemberDAO memberDAO;
+
     public ReservationServiceImp() {
         this.movieDAO = new MovieDAO();
         this.sc = new Scanner(System.in);
         this.reservationDAO = new ReservationDAO();
+        this.memberDAO = new MemberDAO();
     }
     @Override
     public void reserve(Member member) {
@@ -79,8 +85,13 @@ public class ReservationServiceImp implements ReservationService{
             seat = new PopcornDecorator(seat);
         }
 
-        // 7. 최종 가격 안내 및 예매 확인
         System.out.println("최종 예매 가격: " + seat.getPrice() + "원");
+        System.out.println("현재 보유 금액: " + member.getBalance() + "원");
+
+        if (member.getBalance() < seat.getPrice()) {
+            System.out.println("잔액이 부족하여 예매할 수 없습니다. 충전 후 시도해주세요.");
+            return;
+        }
         System.out.print("예매하시겠습니까? (yes/no): ");
         String ok = sc.nextLine();
         if (!ok.equalsIgnoreCase("yes")) {
@@ -88,7 +99,13 @@ public class ReservationServiceImp implements ReservationService{
             return;
         }
 
-        // 8. 좌석 차감 및 예매 내역 저장
+// ★ DB balance 차감 먼저! (MemberDAO가 필요)
+        if (!memberDAO.deductBalance(member.getMemberId(), seat.getPrice())) {
+            System.out.println("잔액이 부족하여 결제에 실패했습니다.");
+            return;
+        }
+
+// 8. 좌석 차감(메모리상) 및 예매 내역 저장
         seatCounts.put(seatType, seatCounts.get(seatType) - 1);
 
         Reservation reservation = new Reservation(
@@ -98,26 +115,85 @@ public class ReservationServiceImp implements ReservationService{
                 seat.getType(),
                 seat.getPrice()
         );
-        if (reservationDAO.saveReservation(reservation)) {
+
+        if (reservationDAO.createReservation(reservation)) {
             member.addReservation(reservation);
+            // ★ 객체 balance 동기화(DB와 싱크)
+            member.setBalance(memberDAO.getBalance(member.getMemberId()));
             System.out.println("예매가 완료되었습니다!");
-        }else {
+        } else {
             System.out.println("예약에 실패했습니다. 다시 시도해주세요.");
+            // (실패 시 환불도 원하면 refundBalance 호출)
+            memberDAO.refundBalance(member.getMemberId(), seat.getPrice());
             return;
         }
     }
 
     @Override
     public void showMyPage(Member member) {
-        System.out.println("==== 나의 예매 내역 ====");
+        Scanner sc = new Scanner(System.in);
+        System.out.println("\n==== 나의 예매 내역 ====");
         List<Reservation> reservations = reservationDAO.getReservationsForMember(member.getMemberId());
         if (reservations.isEmpty()) {
             System.out.println("예매 내역이 없습니다.");
-            return;
+        } else {
+            for (int i = 0; i < reservations.size(); i++) {
+                Reservation r = reservations.get(i);
+                System.out.printf("%d. 영화: %s / 시간: %s / 좌석: %s / 가격: %d원\n",
+                        i + 1, r.getMovieTitle(), r.getMovieTime(), r.getSeatType(), r.getPrice());
+            }
         }
-        for (Reservation r : reservations) {
-            System.out.printf("영화: %s / 시간: %s / 좌석: %s / 가격: %d원\n",
-                    r.getMovieTitle(), r.getMovieTime(), r.getSeatType(), r.getPrice());
+        // 항상 DB 기준으로 잔액 보여줌
+        int dbBalance = memberDAO.getBalance(member.getMemberId());
+        member.setBalance(dbBalance); // 객체에도 동기화
+        System.out.println("현재 보유 금액: " + member.getBalance() + "원");
+
+        System.out.println("1. 예매 취소하기");
+        System.out.println("2. 돈 충전하기");
+        System.out.println("3. 뒤로가기");
+        System.out.print("선택: ");
+        int sel = sc.nextInt();
+        sc.nextLine();
+
+        if (sel == 1 && !reservations.isEmpty()) {
+            // 예매 취소
+            System.out.print("취소할 예매 번호 입력: ");
+            int idx = sc.nextInt() - 1;
+            sc.nextLine();
+            if (idx < 0 || idx >= reservations.size()) {
+                System.out.println("잘못된 입력입니다.");
+                return;
+            }
+            Reservation toCancel = reservations.get(idx);
+            // 환불(취소) 순서: DB 예약 삭제 → DB balance 환불 → 객체 반영
+            if (reservationDAO.deleteReservation(member.getMemberId(), toCancel.getMovieTitle(), toCancel.getMovieTime(), toCancel.getSeatType())) {
+                if (memberDAO.refundBalance(member.getMemberId(), toCancel.getPrice())) {
+                    member.removeReservation(toCancel); // 객체 내역 동기화
+                    member.setBalance(memberDAO.getBalance(member.getMemberId())); // 객체 balance 동기화
+                    System.out.println("예매가 취소되고 금액이 환불되었습니다.");
+                } else {
+                    System.out.println("환불 처리 실패!");
+                }
+            } else {
+                System.out.println("예매 취소 실패!");
+            }
+        } else if (sel == 2) {
+            // 돈 충전
+            System.out.print("충전할 금액 입력: ");
+            int amount = sc.nextInt();
+            sc.nextLine();
+            if (memberDAO.chargeMoney(member.getMemberId(), amount)) {
+                member.chargeMoney(amount); // 객체에 동기화
+                member.setBalance(memberDAO.getBalance(member.getMemberId())); // 객체 balance 동기화
+                System.out.println(amount + "원이 충전되었습니다. 현재 잔액: " + member.getBalance() + "원");
+            } else {
+                System.out.println("충전 실패!");
+            }
+        } else if (sel == 3) {
+            // 뒤로가기
+            return;
+        } else {
+            System.out.println("잘못된 선택입니다.");
         }
     }
 
@@ -132,7 +208,7 @@ public class ReservationServiceImp implements ReservationService{
             case "프리미엄석":
                 return new PremiumSeatFactory();
             default:
-                throw new IllegalArgumentException("존재하지 않는 dd좌석 타입: " + seatType);
+                throw new IllegalArgumentException("존재하지 않는 좌석 타입: " + seatType);
         }
     }
 
