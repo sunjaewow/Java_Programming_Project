@@ -68,6 +68,10 @@ public class MovieDAO {
             case "임산부석": columnName = "pregnant_seat_count"; break;
             case "일반석": columnName = "general_seat_count"; break;
             case "프리미엄석": columnName = "premium_seat_count"; break;
+            case "노약좌석 + 팝콘세트": columnName = "senior_seat_count"; break;
+            case "임산부석 + 팝콘세트": columnName = "pregnant_seat_count"; break;
+            case "일반석 + 팝콘세트": columnName = "general_seat_count"; break;
+            case "프리미엄석 + 팝콘세트": columnName = "premium_seat_count"; break;
             default: throw new IllegalArgumentException("좌석타입 오류: " + seatType);
         }
         String sql = "UPDATE movie SET " + columnName + " = " + columnName + " - 1 WHERE id = ?";

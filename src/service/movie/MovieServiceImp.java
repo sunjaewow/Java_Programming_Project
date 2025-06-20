@@ -3,6 +3,8 @@ package service.movie;
 import dao.MovieDAO;
 import domain.Member;
 import domain.Movie;
+import observer.AdminObserver;
+import observer.ReservationSubject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +34,9 @@ public class MovieServiceImp implements MovieService {
             sc.nextLine();
             seatCounts.put(seatType, count);
         }
+
+        ReservationSubject subject = new ReservationSubject();
+        subject.registerObserver(new AdminObserver(member.getId()));
 
         return movieDAO.createMovie(new Movie(title, time, seatCounts, member.getMemberId()));
     }

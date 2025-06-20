@@ -2,6 +2,8 @@ package service;
 
 import dao.MemberDAO;
 import domain.Member;
+import observer.AdminObserver;
+import observer.ReservationSubject;
 
 import java.util.Scanner;
 
@@ -42,15 +44,16 @@ public class MemberService {
             String id = sc.nextLine();
             System.out.print("비밀번호: ");
             String password = sc.nextLine();
-            Member mem = dao.loginMember(id, password);
-            if (mem != null) {
+            Member member = dao.loginMember(id, password);
+            if (member != null) {
                 System.out.println("로그인 성공!");
-                if (mem.getRole().equals("ADMIN")) {
+                if (member.getRole().equals("ADMIN")) {
                     System.out.println("관리자님 어서오세요.");
+
                 } else {
                     System.out.println("환영합니다. ");
                 }
-                return mem;
+                return member;
             } else {
                 System.out.println("로그인 실패! 다시 입력해주세요.");
             }

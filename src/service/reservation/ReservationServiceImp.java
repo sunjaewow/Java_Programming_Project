@@ -140,7 +140,6 @@ public class ReservationServiceImp implements ReservationService{
 
 // 2. 관리자 Member 정보 조회 (MemberDAO에 getMemberById(int id) 필요)
             Member adminMember = memberDAO.getMemberById(memberId);
-            System.out.println(adminMember.getId());
 
 // 3. 옵저버 패턴 등록 및 알림
             ReservationSubject subject = new ReservationSubject();
