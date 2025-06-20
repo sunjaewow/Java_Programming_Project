@@ -2,6 +2,7 @@ package main;
 
 import dao.MovieDAO;
 import domain.Member;
+import facade.ReservationFacade;
 import service.movie.MovieService;
 import service.movie.MovieServiceImp;
 import service.movie.MovieServiceProxy;
@@ -20,6 +21,8 @@ public class MainMenu {
 
     private final ReservationService reservationService;
 
+    private final ReservationFacade reservationFacade;
+
     public MainMenu(Scanner sc, Member member) {
         this.sc = sc;
         this.member = member;
@@ -27,6 +30,7 @@ public class MainMenu {
         MovieService movieServiceImp = new MovieServiceImp(movieDAO, sc);
         this.movieService = new MovieServiceProxy(movieServiceImp, member);;
         this.reservationService = new ReservationServiceImp();
+        this.reservationFacade = new ReservationFacade();
     }
 
     public void showMenu() {
@@ -35,7 +39,7 @@ public class MainMenu {
             int choice = InputUtil.getIntInput(sc);
 
             if (choice == 1) {
-                reservationService.reserve(member);   // ★ 예매 서비스 실행
+                reservationFacade.reserveTicket(member);
             } else if (choice == 2) {
                 if (movieService.registerMovie(member)) {
                     System.out.println("영화 등록 완료!");

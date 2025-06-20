@@ -2,8 +2,6 @@ package service;
 
 import dao.MemberDAO;
 import domain.Member;
-import observer.AdminObserver;
-import observer.ReservationSubject;
 
 import java.util.Scanner;
 

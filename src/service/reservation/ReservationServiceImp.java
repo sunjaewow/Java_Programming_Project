@@ -23,18 +23,20 @@ public class ReservationServiceImp implements ReservationService{
 
     private final MemberDAO memberDAO;
 
+
     public ReservationServiceImp() {
         this.movieDAO = new MovieDAO();
         this.sc = new Scanner(System.in);
         this.reservationDAO = new ReservationDAO();
         this.memberDAO = new MemberDAO();
     }
+
     @Override
-    public void reserve(Member member) {
+    public Movie selectMovie() {
         List<Movie> movies = movieDAO.getAllMovies();
         if (movies.isEmpty()) {
             System.out.println("등록된 영화가 없습니다.");
-            return;
+            return null;
         }
         System.out.println("==== 영화 목록 ====");
         for (int i = 0; i < movies.size(); i++) {
@@ -42,21 +44,19 @@ public class ReservationServiceImp implements ReservationService{
         }
         System.out.println("뒤로 가기 : 99");
         System.out.print("영화 선택(번호): ");
-        int movieIdx = sc.nextInt() - 1;
+        int idx = sc.nextInt() - 1;
         sc.nextLine();
-        if (movieIdx == 99) {
-            return;
-        }
-
-        if (movieIdx < 0 || movieIdx >= movies.size()) {
+        if (idx == 98) return null; // 99-1=98
+        if (idx < 0 || idx >= movies.size()) {
             System.out.println("잘못된 선택입니다.");
-            return;
+            return null;
         }
-        Movie movie = movies.get(movieIdx);
+        return movies.get(idx);
+    }
 
-        // 2. (생략 가능) 시간대 선택 - 만약 한 영화에 여러 시간대가 있다면
-
-        // 3. 좌석 종류별 남은 수량 출력 및 선택
+    // 2. 좌석 종류 선택
+    @Override
+    public String selectSeatType(Movie movie) {
         Map<String, Integer> seatCounts = movie.getSeatCounts();
         String[] seatTypes = {"노약좌석", "임산부석", "일반석", "프리미엄석"};
         System.out.println("좌석 종류:");
@@ -65,39 +65,44 @@ public class ReservationServiceImp implements ReservationService{
             System.out.printf("%d. %s (남은 좌석: %d)\n", i + 1, seatTypes[i], count);
         }
         System.out.println("뒤로 가기 : 99");
-
         System.out.print("좌석 선택(번호): ");
-        int seatTypeIdx = sc.nextInt() - 1;
+        int idx = sc.nextInt() - 1;
         sc.nextLine();
-        if (seatTypeIdx == 99) {
-            return;
-        }
-        if (seatTypeIdx < 0 || seatTypeIdx >= seatTypes.length) {
+        if (idx == 98) return null;
+        if (idx < 0 || idx >= seatTypes.length) {
             System.out.println("잘못된 선택입니다.");
-            return;
+            return null;
         }
-        String seatType = seatTypes[seatTypeIdx];
-
-        // 4. 남은 좌석 확인
+        String seatType = seatTypes[idx];
         if (seatCounts.get(seatType) == null || seatCounts.get(seatType) <= 0) {
             System.out.println("죄송합니다. 해당 좌석이 매진입니다.");
-            return;
+            return null;
         }
+        return seatType;
+    }
 
-        // 5. 좌석 생성 (팩토리 + 전략 패턴)
-        SeatFactory seatFactory = getSeatFactory(seatType);
-        Seat seat = seatFactory.createSeat();
-
-        // 6. 팝콘 옵션 (데코레이터 패턴)
+    // 3. 팝콘 여부
+    @Override
+    public boolean askPopcorn() {
         System.out.print("팝콘을 추가하시겠습니까? (yes/no): ");
         String popcorn = sc.nextLine();
-        if (popcorn.equalsIgnoreCase("yes")) {
-            seat = new PopcornDecorator(seat);
-        }
+        return popcorn.equalsIgnoreCase("yes");
+    }
 
+    // 4. 좌석 생성
+    @Override
+    public Seat createSeat(String seatType, boolean popcorn) {
+        SeatFactory seatFactory = getSeatFactory(seatType);
+        Seat seat = seatFactory.createSeat();
+        if (popcorn) seat = new PopcornDecorator(seat);
+        return seat;
+    }
+
+    // 5. 결제/좌석 차감/예매 저장/알림 등 최종 예매 처리
+    @Override
+    public void processReservation(Member member, Movie movie, String seatType, Seat seat) {
         System.out.println("최종 예매 가격: " + seat.getPrice() + "원");
         System.out.println("현재 보유 금액: " + member.getBalance() + "원");
-
         if (member.getBalance() < seat.getPrice()) {
             System.out.println("잔액이 부족하여 예매할 수 없습니다. 충전 후 시도해주세요.");
             return;
@@ -106,49 +111,39 @@ public class ReservationServiceImp implements ReservationService{
         String ok = sc.nextLine();
         if (!ok.equalsIgnoreCase("yes")) {
             System.out.println("예매가 취소되었습니다.");
-            return;
+            return ;
         }
 
-// ★ DB balance 차감 먼저! (MemberDAO가 필요)
+        // 결제
         if (!memberDAO.deductBalance(member.getMemberId(), seat.getPrice())) {
             System.out.println("잔액이 부족하여 결제에 실패했습니다.");
             return;
         }
 
-// 8. 좌석 차감(메모리상) 및 예매 내역 저장
-        seatCounts.put(seatType, seatCounts.get(seatType) - 1);
+        // 좌석 차감(메모리)
+        movie.getSeatCounts().put(seatType, movie.getSeatCounts().get(seatType) - 1);
 
         Reservation reservation = new Reservation(
-                member.getMemberId(),
-                movie.getTitle(),
-                movie.getTime(),
-                seat.getType(),
-                seat.getPrice()
+                member.getMemberId(), movie.getTitle(), movie.getTime(), seat.getType(), seat.getPrice()
         );
-
         if (reservationDAO.createReservation(reservation)) {
-            // ★ 좌석 차감(DB)
+            // 좌석 차감(DB)
             if (!movieDAO.decrementSeatCount(movie.getId(), seatType)) {
                 System.out.println("좌석 차감(DB)이 실패했습니다. 관리자에게 문의하세요.");
-                // 좌석 차감 실패 시, 예매도 롤백(삭제)할지, 그냥 안내만 할지는 정책에 따라 결정
             }
-
             member.addReservation(reservation);
-            // 객체 balance 동기화
             member.setBalance(memberDAO.getBalance(member.getMemberId()));
-            int memberId = movie.getMemberId();
 
-// 2. 관리자 Member 정보 조회 (MemberDAO에 getMemberById(int id) 필요)
-            Member adminMember = memberDAO.getMemberById(memberId);
-
-// 3. 옵저버 패턴 등록 및 알림
-            ReservationSubject subject = new ReservationSubject();
+            // 알림(옵저버) 처리 (옵저버는 관리자 로그인/실행 시에 등록됨)
+            int adminId = movie.getMemberId();
+            Member adminMember = memberDAO.getMemberById(adminId);
+            ReservationSubject subject = new ReservationSubject();// 싱글턴으로 바꿔야 진짜 분리 가능
             subject.registerObserver(new AdminObserver(adminMember.getId()));
             subject.notifyObservers("[" + member.getId() + "] 님이 영화 '" + movie.getTitle() + "'을 예매했습니다.");
             System.out.println("예매가 완료되었습니다!");
+            return;
         } else {
             System.out.println("예약에 실패했습니다. 다시 시도해주세요.");
-            // 실패 시 환불도 원하면 refundBalance 호출
             memberDAO.refundBalance(member.getMemberId(), seat.getPrice());
             return;
         }
