@@ -5,7 +5,7 @@ import domain.Member;
 public class MovieServiceProxy implements MovieService{
     private final MovieService movieService;
 
-    public MovieServiceProxy(MovieService movieService, Member member) {
+    public MovieServiceProxy(MovieService movieService) {
         this.movieService = movieService;
     }
 

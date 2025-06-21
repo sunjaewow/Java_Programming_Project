@@ -1,6 +1,5 @@
 package main;
 
-import dao.MemberDAO;
 import domain.Member;
 import service.MemberService;
 import util.InputUtil;

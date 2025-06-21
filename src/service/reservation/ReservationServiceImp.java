@@ -9,7 +9,7 @@ import domain.Reservation;
 import domain.seat.Seat;
 import domain.seat.decorator.PopcornDecorator;
 import domain.seat.factory.*;
-import observer.AdminObserver;
+import observer.VipObserver;
 import observer.ReservationSubject;
 
 import java.util.List;
@@ -133,19 +133,29 @@ public class ReservationServiceImp implements ReservationService{
             }
             member.addReservation(reservation);
             member.setBalance(memberDAO.getBalance(member.getMemberId()));
+            vipNotification(member);
 
-            // 알림(옵저버) 처리 (옵저버는 관리자 로그인/실행 시에 등록됨)
-            int adminId = movie.getMemberId();
-            Member adminMember = memberDAO.getMemberById(adminId);
-            ReservationSubject subject = new ReservationSubject();// 싱글턴으로 바꿔야 진짜 분리 가능
-            subject.registerObserver(new AdminObserver(adminMember.getId()));
-            subject.notifyObservers("[" + member.getId() + "] 님이 영화 '" + movie.getTitle() + "'을 예매했습니다.");
             System.out.println("예매가 완료되었습니다!");
             return;
         } else {
             System.out.println("예약에 실패했습니다. 다시 시도해주세요.");
             memberDAO.refundBalance(member.getMemberId(), seat.getPrice());
             return;
+        }
+    }
+
+    private void vipNotification(Member member) {
+        int reservationCount = reservationDAO.getReservationsForMember(member.getMemberId()).size(); // 또는 getReservationCount() 등
+
+        if (reservationCount >= 5) {
+            ReservationSubject subject = ReservationSubject.getInstance();
+            if (!subject.isVipRegistered(member.getId())) {
+                subject.registerObserver(new VipObserver(member.getId()));
+            }
+            subject.notifyVipObservers(
+                    member.getId(),
+                    "🎉 축하합니다! 5번째 예매를 완료하셨습니다! 앞으로도 많은 이용 부탁드립니다."
+            );
         }
     }
 

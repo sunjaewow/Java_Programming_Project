@@ -33,8 +33,8 @@ public class MainMenu {
         this.sc = sc;
         this.member = member;
         MovieDAO movieDAO = new MovieDAO();
-        MovieService movieServiceImp = new MovieServiceImp(movieDAO, sc);
-        this.movieService = new MovieServiceProxy(movieServiceImp, member);;
+        MovieService movieServiceImp = new MovieServiceImp(movieDAO);
+        this.movieService = new MovieServiceProxy(movieServiceImp);;
         this.reservationService = new ReservationServiceImp();
         this.reservationFacade = new ReservationFacade();
 

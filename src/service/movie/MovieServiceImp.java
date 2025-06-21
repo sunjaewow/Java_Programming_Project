@@ -3,7 +3,7 @@ package service.movie;
 import dao.MovieDAO;
 import domain.Member;
 import domain.Movie;
-import observer.AdminObserver;
+import observer.VipObserver;
 import observer.ReservationSubject;
 
 import java.util.HashMap;
@@ -14,9 +14,9 @@ public class MovieServiceImp implements MovieService {
     private final MovieDAO movieDAO;
     private final Scanner sc;
 
-    public MovieServiceImp(MovieDAO movieDAO, Scanner sc) {
+    public MovieServiceImp(MovieDAO movieDAO) {
         this.movieDAO = movieDAO;
-        this.sc = sc;
+        this.sc = new Scanner(System.in);
     }
 
     @Override
@@ -34,9 +34,6 @@ public class MovieServiceImp implements MovieService {
             sc.nextLine();
             seatCounts.put(seatType, count);
         }
-
-        ReservationSubject subject = new ReservationSubject();
-        subject.registerObserver(new AdminObserver(member.getId()));
 
         return movieDAO.createMovie(new Movie(title, time, seatCounts, member.getMemberId()));
     }
