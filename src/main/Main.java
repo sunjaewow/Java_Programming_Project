@@ -21,7 +21,7 @@ public class Main {
                 } else if (choice == 2) {
                     Member member = memberService.login();
                     if (member != null) {
-                        MainMenu mainMenu = new MainMenu(sc, member);
+                        MainMenu mainMenu = new MainMenu(member);
                         mainMenu.showMenu();
                     }
                 } else if (choice == 3) {

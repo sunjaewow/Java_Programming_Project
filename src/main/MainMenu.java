@@ -4,6 +4,9 @@ import commend.*;
 import dao.MovieDAO;
 import domain.Member;
 import facade.ReservationFacade;
+import service.announcement.AnnouncementService;
+import service.announcement.AnnouncementServiceImp;
+import service.announcement.AnnouncementServiceProxy;
 import service.movie.MovieService;
 import service.movie.MovieServiceImp;
 import service.movie.MovieServiceProxy;
@@ -26,23 +29,29 @@ public class MainMenu {
 
     private final ReservationFacade reservationFacade;
 
+    private final MovieDAO movieDAO;
+
+    private final AnnouncementService announcementService;
+
     private final Map<Integer, Command> commandMap = new HashMap<>();
 
 
-    public MainMenu(Scanner sc, Member member) {
-        this.sc = sc;
+    public MainMenu(Member member) {
+        this.sc = new Scanner(System.in);
         this.member = member;
-        MovieDAO movieDAO = new MovieDAO();
-        MovieService movieServiceImp = new MovieServiceImp(movieDAO);
-        this.movieService = new MovieServiceProxy(movieServiceImp);;
+        this.movieDAO= new MovieDAO();
+        this.movieService = new MovieServiceProxy(new MovieServiceImp(movieDAO));;
         this.reservationService = new ReservationServiceImp();
         this.reservationFacade = new ReservationFacade();
+        this.announcementService = new AnnouncementServiceProxy(new AnnouncementServiceImp());
+
 
         // 커맨드 등록
         commandMap.put(1, new ReserveCommand(reservationFacade, member));
         commandMap.put(2, new RegisterMovieCommand(movieService, member));
         commandMap.put(3, new MyPageCommand(reservationService, member));
-        commandMap.put(4, new ExitCommand());
+        commandMap.put(4, new AnnouncementCommand(announcementService, member));
+        commandMap.put(5, new ExitCommand());
     }
 
     public void showMenu() {
@@ -53,7 +62,7 @@ public class MainMenu {
             Command cmd = commandMap.get(choice);
             if (cmd != null) {
                 cmd.execute();
-                if (choice==4)
+                if (choice==5)
                 {
                     break;
                 }

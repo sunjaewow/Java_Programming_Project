@@ -12,7 +12,8 @@ public class PrintUtil {
         System.out.println("1. 영화예매하기");
         System.out.println("2. 영화등록하기");
         System.out.println("3. 마이페이지");
-        System.out.println("4. 종료하기");
+        System.out.println("4. 공지사항 전파");
+        System.out.println("5. 종료하기");
         System.out.println("선택: ");
     }
 }

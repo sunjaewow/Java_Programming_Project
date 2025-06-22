@@ -6,12 +6,9 @@ import java.util.List;
 public class ReservationSubject implements Subject {
     // 싱글턴 패턴 구현
     private static final ReservationSubject instance = new ReservationSubject();
-    public static ReservationSubject getInstance() {
-        return instance;
-    }
+    public static ReservationSubject getInstance() { return instance; }
 
     private final List<Observer> observers = new ArrayList<>();
-
     private ReservationSubject() {}
 
     @Override
@@ -24,15 +21,17 @@ public class ReservationSubject implements Subject {
         observers.remove(o);
     }
 
-    @Override
-    public void notifyObservers(String message) {
+    // 모든 VIP에게 알림 (공지 전파용)
+    public void notifyVipObservers(String message) {
         for (Observer o : observers) {
-            o.update(message);
+            if (o instanceof VipObserver) {
+                o.update(message);
+            }
         }
     }
 
-    // VIP에게만 알림
-    public void notifyVipObservers(String memberId, String message) {
+    // 특정 memberId VIP에게만 알림 (예: 5회 예매 축하)
+    public void notifyVipObserver(String memberId, String message) {
         for (Observer o : observers) {
             if (o instanceof VipObserver) {
                 VipObserver vip = (VipObserver) o;
@@ -52,5 +51,4 @@ public class ReservationSubject implements Subject {
         }
         return false;
     }
-
 }

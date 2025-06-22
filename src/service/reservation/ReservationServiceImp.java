@@ -46,7 +46,7 @@ public class ReservationServiceImp implements ReservationService{
         System.out.print("영화 선택(번호): ");
         int idx = sc.nextInt() - 1;
         sc.nextLine();
-        if (idx == 98) return null; // 99-1=98
+        if (idx == 98) return null;
         if (idx < 0 || idx >= movies.size()) {
             System.out.println("잘못된 선택입니다.");
             return null;
@@ -147,12 +147,12 @@ public class ReservationServiceImp implements ReservationService{
     private void vipNotification(Member member) {
         int reservationCount = reservationDAO.getReservationsForMember(member.getMemberId()).size(); // 또는 getReservationCount() 등
 
-        if (reservationCount >= 5) {
+        if (reservationCount == 5) {
             ReservationSubject subject = ReservationSubject.getInstance();
             if (!subject.isVipRegistered(member.getId())) {
                 subject.registerObserver(new VipObserver(member.getId()));
             }
-            subject.notifyVipObservers(
+            subject.notifyVipObserver(
                     member.getId(),
                     "🎉 축하합니다! 5번째 예매를 완료하셨습니다! 앞으로도 많은 이용 부탁드립니다."
             );
@@ -173,6 +173,7 @@ public class ReservationServiceImp implements ReservationService{
                         i + 1, r.getMovieTitle(), r.getMovieTime(), r.getSeatType(), r.getPrice());
             }
         }
+
         // 항상 DB 기준으로 잔액 보여줌
         int dbBalance = memberDAO.getBalance(member.getMemberId());
         member.setBalance(dbBalance); // 객체에도 동기화
