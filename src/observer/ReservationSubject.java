@@ -30,7 +30,7 @@ public class ReservationSubject implements Subject {
         }
     }
 
-    // 특정 memberId VIP에게만 알림 (예: 5회 예매 축하)
+    // 특정 memberId VIP에게만 알림
     public void notifyVipObserver(String memberId, String message) {
         for (Observer o : observers) {
             if (o instanceof VipObserver) {

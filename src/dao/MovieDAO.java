@@ -125,6 +125,19 @@ public class MovieDAO {
         return -1;
     }
 
+    public boolean deleteMovie(int movieId) {
+        String sql = "DELETE FROM movie WHERE id = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PW);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, movieId);
+            int affected = ps.executeUpdate();
+            return affected > 0;
+        } catch (SQLException e) {
+            System.out.println("영화 삭제 실패: " + e.getMessage());
+            return false;
+        }
+    }
+
 
 }
 

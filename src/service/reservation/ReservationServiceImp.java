@@ -11,6 +11,7 @@ import domain.seat.decorator.PopcornDecorator;
 import domain.seat.factory.*;
 import observer.VipObserver;
 import observer.ReservationSubject;
+import util.PrintUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -179,10 +180,7 @@ public class ReservationServiceImp implements ReservationService{
         member.setBalance(dbBalance); // 객체에도 동기화
         System.out.println("현재 보유 금액: " + member.getBalance() + "원");
 
-        System.out.println("1. 예매 취소하기");
-        System.out.println("2. 돈 충전하기");
-        System.out.println("3. 뒤로가기");
-        System.out.print("선택: ");
+        PrintUtil.printMyPage();
         int sel = sc.nextInt();
         sc.nextLine();
 
@@ -240,6 +238,7 @@ public class ReservationServiceImp implements ReservationService{
             System.out.println("잘못된 선택입니다.");
         }
     }
+
 
     private SeatFactory getSeatFactory(String seatType) {
         switch (seatType) {
